@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="포트폴리오">
+<meta name="theme-color" content="#070b14">
+<title>포트폴리오 트래커</title>
+<link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIu2PrO2KuO2PtOumrOyYpCDtirjrnpjsu6QiLAogICJzaG9ydF9uYW1lIjogIu2PrO2KuO2PtOumrOyYpCIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMDcwYjE0IiwKICAidGhlbWVfY29sb3IiOiAiIzA3MGIxNCIsCiAgImljb25zIjogW10KfQ==">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#070b14;--bg-card:#0f1520;--bg-card2:#141c2b;--bg-input:#1a2436;--border:#1c2d45;--border-light:#253550;--text:#e4eaf4;--text2:#8da0be;--text3:#506380;--accent:#4e8cff;--accent-dim:rgba(78,140,255,.12);--green:#34d399;--green-dim:rgba(52,211,153,.1);--red:#f87171;--red-dim:rgba(248,113,113,.1);--gold:#fbbf24;--gold-dim:rgba(251,191,36,.1);--purple:#a78bfa;--purple-dim:rgba(167,139,250,.1);--orange:#fb923c;--orange-dim:rgba(251,146,60,.1);--radius:14px;--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px)}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',-apple-system,sans-serif;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+body{padding-top:var(--safe-top);padding-bottom:calc(68px + var(--safe-bottom))}
+input,select,button{font-family:inherit}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#253550;border-radius:2px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes shake{0%,100%{transform:translateX(0)}15%,45%,75%{transform:translateX(-8px)}30%,60%,90%{transform:translateX(8px)}}
+@keyframes popIn{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
+@keyframes lockPulse{0%,100%{box-shadow:0 0 40px rgba(78,140,255,.15)}50%{box-shadow:0 0 60px rgba(78,140,255,.25)}}
+@keyframes syncPulse{0%,100%{opacity:1}50%{opacity:.5}}
+.fade-up{animation:fadeUp .4s cubic-bezier(.22,1,.36,1) both}
+.fade-up-1{animation-delay:.05s}.fade-up-2{animation-delay:.1s}.fade-up-3{animation-delay:.15s}.fade-up-4{animation-delay:.2s}
+.lock-screen{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;animation:fadeIn .3s ease}
+.lock-icon{width:80px;height:80px;border-radius:24px;background:linear-gradient(135deg,#4e8cff,#7c5cfc);display:flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:24px;animation:lockPulse 3s ease-in-out infinite}
+.lock-title{font-size:20px;font-weight:800;margin-bottom:6px}
+.lock-subtitle{font-size:13px;color:var(--text3);margin-bottom:36px}
+.pin-dots{display:flex;gap:16px;margin-bottom:36px;height:20px}
+.pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--border-light);transition:all .2s}
+.pin-dot.filled{background:var(--accent);border-color:var(--accent);animation:popIn .2s ease;box-shadow:0 0 12px rgba(78,140,255,.4)}
+.pin-dot.error{background:var(--red);border-color:var(--red)}
+.pin-dots.shake{animation:shake .5s ease}
+.pin-pad{display:grid;grid-template-columns:repeat(3,72px);gap:12px;justify-content:center}
+.pin-key{width:72px;height:72px;border-radius:50%;background:var(--bg-card);border:1px solid var(--border);color:var(--text);font-size:26px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .12s;user-select:none;font-family:'JetBrains Mono',monospace}
+.pin-key:active{background:var(--accent-dim);border-color:var(--accent);transform:scale(.92)}
+.pin-key-del{font-size:18px;color:var(--text2);background:transparent;border-color:transparent}
+.pin-key-del:active{color:var(--accent);background:transparent}
+.lock-error{color:var(--red);font-size:12px;margin-top:12px;min-height:18px;font-weight:600}
+.setup-step{font-size:12px;color:var(--accent);font-weight:600;margin-bottom:8px;letter-spacing:.06em}
+.security-badge{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--green);font-weight:600;padding:3px 8px;border-radius:6px;background:var(--green-dim)}
+.security-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green)}
+.sync-badge{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:600;padding:3px 8px;border-radius:6px;margin-left:4px}
+.sync-on{color:var(--accent);background:var(--accent-dim)}
+.sync-on::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent);animation:syncPulse 2s infinite}
+.sync-off{color:var(--text3);background:rgba(255,255,255,.03)}
+.container{max-width:600px;margin:0 auto;padding:0 16px}
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:12px;transition:transform .15s}
+.card:active{transform:scale(.985)}
+.header{padding:16px 0 12px;display:flex;align-items:center;justify-content:space-between}
+.header-left{display:flex;align-items:center;gap:12px}
+.logo{width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#4e8cff,#7c5cfc);font-size:20px;box-shadow:0 4px 20px rgba(78,140,255,.25)}
+.header h1{font-size:18px;font-weight:800;letter-spacing:-.02em}
+.header-right{display:flex;align-items:center;gap:8px}
+.ib{width:38px;height:38px;border-radius:11px;border:1px solid var(--border);background:var(--bg-card);color:var(--text2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.ib:active{background:var(--bg-input)}
+.ib.spinning>span{animation:spin .8s linear infinite}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:2px 0 14px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex-shrink:0;padding:7px 16px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text3);font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap}
+.chip.active{border-color:var(--accent);background:var(--accent-dim);color:var(--accent)}
+.summary-grid{display:grid;gap:10px;margin-bottom:14px}
+.summary-main{background:linear-gradient(135deg,#111d30,#0f1520);border:1px solid var(--border);border-radius:var(--radius);padding:24px;position:relative;overflow:hidden}
+.summary-main::after{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(78,140,255,.08),transparent 70%);pointer-events:none}
+.summary-label{font-size:12px;color:var(--text3);font-weight:600;letter-spacing:.04em;margin-bottom:6px}
+.summary-value{font-size:28px;font-weight:900;letter-spacing:-.03em;font-family:'JetBrains Mono','Noto Sans KR',monospace}
+.summary-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.summary-sub{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px}
+.summary-sub .summary-value{font-size:18px}
+.pnl-badge{display:inline-block;padding:3px 10px;border-radius:8px;font-size:13px;font-weight:700;margin-top:6px;font-family:'JetBrains Mono',monospace}
+.pnl-pos{background:var(--green-dim);color:var(--green)}.pnl-neg{background:var(--red-dim);color:var(--red)}
+.donut-section{display:flex;align-items:center;gap:20px;justify-content:center;flex-wrap:wrap;padding:8px 0}
+.legend{display:flex;flex-direction:column;gap:10px}
+.legend-item{display:flex;align-items:center;gap:8px}
+.legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+.legend-label{font-size:13px;font-weight:600}.legend-val{font-size:11px;color:var(--text3)}
+.holding-item{display:flex;justify-content:space-between;align-items:center;padding:16px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;cursor:pointer;transition:all .15s}
+.holding-item:active{background:var(--bg-card2);transform:scale(.985)}
+.h-left{flex:1;min-width:0}.h-name{font-size:15px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.h-meta{font-size:11px;color:var(--text3);display:flex;gap:8px;align-items:center}
+.h-tag{font-size:9px;padding:2px 6px;border-radius:4px;font-weight:700;flex-shrink:0}
+.h-tag-kr{background:rgba(78,140,255,.12);color:var(--accent)}.h-tag-us{background:var(--purple-dim);color:var(--purple)}.h-tag-gold{background:var(--gold-dim);color:var(--gold)}
+.h-right{text-align:right;flex-shrink:0;margin-left:12px}
+.h-eval{font-size:15px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.h-pnl{font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace;margin-top:2px}
+.acct-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:10px;position:relative}
+.acct-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.acct-icon{width:46px;height:46px;border-radius:13px;background:var(--bg-input);display:flex;align-items:center;justify-content:center;font-size:22px}
+.acct-name{font-size:16px;font-weight:700}.acct-count{font-size:11px;color:var(--text3)}
+.acct-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.acct-stat{padding:10px 12px;background:var(--bg-input);border-radius:10px}
+.acct-stat-label{font-size:10px;color:var(--text3);font-weight:600;margin-bottom:3px}
+.acct-stat-val{font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.acct-del{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:4px;border-radius:6px}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(7,11,20,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);padding-bottom:var(--safe-bottom)}
+.nav-inner{display:flex;max-width:600px;margin:0 auto}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 0 8px;background:none;border:none;color:var(--text3);font-size:10px;font-weight:600;cursor:pointer;transition:color .2s}
+.nav-item.active{color:var(--accent)}.nav-icon{font-size:20px;line-height:1}
+.fab{position:fixed;bottom:calc(80px + var(--safe-bottom));right:20px;z-index:90;width:52px;height:52px;border-radius:16px;border:none;background:linear-gradient(135deg,#4e8cff,#7c5cfc);color:#fff;font-size:26px;font-weight:300;cursor:pointer;box-shadow:0 8px 30px rgba(78,140,255,.35);display:flex;align-items:center;justify-content:center;transition:transform .2s}
+.fab:active{transform:scale(.9)}
+.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s ease}
+.modal-sheet{background:var(--bg-card);border-radius:20px 20px 0 0;width:100%;max-width:600px;max-height:85vh;overflow-y:auto;padding:8px 24px calc(24px + var(--safe-bottom));animation:fadeUp .3s cubic-bezier(.22,1,.36,1)}
+.modal-handle{width:36px;height:4px;background:var(--border-light);border-radius:2px;margin:8px auto 20px}
+.modal-title{font-size:17px;font-weight:800;margin-bottom:20px}
+.fl{display:block;font-size:11px;font-weight:600;color:var(--text3);margin-bottom:5px;letter-spacing:.04em}
+.fi{width:100%;padding:12px 14px;background:var(--bg-input);border:1px solid var(--border);border-radius:11px;color:var(--text);font-size:14px;outline:none;transition:border-color .2s;-webkit-appearance:none;appearance:none}
+.fi:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim)}
+.fg{margin-bottom:14px}.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{padding:12px 24px;border-radius:12px;font-size:14px;font-weight:700;border:none;cursor:pointer;transition:all .15s;width:100%}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:active{background:#3d7ae6}
+.btn-secondary{background:var(--bg-input);color:var(--text);border:1px solid var(--border)}
+.btn-danger{background:var(--red);color:#fff}
+.btn-row{display:flex;gap:10px;margin-top:8px}
+.icon-grid{display:flex;gap:6px;flex-wrap:wrap}
+.icon-btn{width:42px;height:42px;border-radius:11px;border:2px solid var(--border);background:var(--bg-input);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.icon-btn.active{border-color:var(--accent);background:var(--accent-dim)}
+.section-title{font-size:15px;font-weight:700;color:var(--text2);margin-bottom:14px}
+.empty-state{text-align:center;padding:48px 20px;color:var(--text3)}.empty-state .emoji{font-size:40px;margin-bottom:12px}
+.update-time{font-size:10px;color:var(--text3);text-align:center;padding:8px 0 4px}
+.toast{position:fixed;top:calc(20px + var(--safe-top));left:50%;transform:translateX(-50%);z-index:9000;padding:10px 20px;border-radius:12px;font-size:13px;font-weight:600;animation:fadeUp .3s ease;pointer-events:none;max-width:90%}
+.toast-ok{background:var(--green);color:#000}.toast-err{background:var(--red);color:#fff}.toast-info{background:var(--accent);color:#fff}
+.sync-code-display{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;letter-spacing:.15em;text-align:center;padding:16px;background:var(--bg-input);border:2px dashed var(--border-light);border-radius:12px;color:var(--accent);margin:12px 0;user-select:all}
+@media(min-width:640px){.container{padding:0 24px}.modal-sheet{border-radius:20px;margin-bottom:40px;max-height:80vh}.modal-overlay{align-items:center}.summary-value{font-size:32px}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast-container"></div>
+<input type="file" id="import-file" accept=".json,.pfbak" style="display:none">
+<script>
+// ═══ ENCRYPTION ═══
+const Cry={
+  async dk(pin,salt){const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pin),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:100000,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['encrypt','decrypt'])},
+  async enc(data,pin){const s=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12)),k=await this.dk(pin,s),e=await crypto.subtle.encrypt({name:'AES-GCM',iv},k,new TextEncoder().encode(JSON.stringify(data))),b=new Uint8Array(s.length+iv.length+e.byteLength);b.set(s,0);b.set(iv,16);b.set(new Uint8Array(e),28);return btoa(String.fromCharCode(...b))},
+  async dec(b64,pin){const r=Uint8Array.from(atob(b64),c=>c.charCodeAt(0)),k=await this.dk(pin,r.slice(0,16)),d=await crypto.subtle.decrypt({name:'AES-GCM',iv:r.slice(16,28)},k,r.slice(28));return JSON.parse(new TextDecoder().decode(d))}
+};
+async function hashPin(p){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(p+'_pf_salt_v3'));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('')}
+
+// ═══ STORAGE KEYS ═══
+const K={PIN:'pf-pin',DATA:'pf-data',LOCK:'pf-lock-min',ATT:'pf-att',LKOUT:'pf-lkout',FB_CFG:'pf-fb-cfg',SYNC_CODE:'pf-sync-code',SYNC_ON:'pf-sync-on'};
+
+// ═══ STATE ═══
+let USD_KRW=1380;
+const defAccts=[{id:'isa',name:'ISA',icon:'🛡️'},{id:'pension',name:'연금저축',icon:'🏦'},{id:'general',name:'일반계좌',icon:'💼'}];
+const defHolds=[
+  {id:'h1',accountId:'isa',type:'kr_stock',ticker:'005930',name:'삼성전자',qty:50,avgPrice:62000,currency:'KRW'},
+  {id:'h2',accountId:'isa',type:'kr_stock',ticker:'000660',name:'SK하이닉스',qty:20,avgPrice:145000,currency:'KRW'},
+  {id:'h3',accountId:'pension',type:'us_stock',ticker:'AAPL',name:'Apple',qty:10,avgPrice:178.5,currency:'USD'},
+  {id:'h4',accountId:'pension',type:'us_stock',ticker:'NVDA',name:'NVIDIA',qty:5,avgPrice:480,currency:'USD'},
+  {id:'h5',accountId:'general',type:'us_stock',ticker:'MSFT',name:'Microsoft',qty:8,avgPrice:380,currency:'USD'},
+  {id:'h6',accountId:'general',type:'gold',ticker:'GOLD',name:'금 현물',qty:10,avgPrice:85000,currency:'KRW'}
+];
+
+let S={phase:'loading',currentPin:'',pinInput:[],pinError:'',setupPin:'',attempts:0,lockoutUntil:0,autoLockMin:3,
+  accounts:[...defAccts],holdings:[...defHolds],prices:{},sparkData:{},tab:'dashboard',selAccount:'all',
+  lastUpdate:new Date(),modal:null,editHolding:null,refreshing:false,
+  // Sync state
+  fbConfig:null,syncCode:'',syncOn:false,syncStatus:'off',fbDb:null,fbUnsub:null,lastSync:null};
+let lastAct=Date.now(),autoLockIv=null,priceIv=null;
+
+// ═══ TOAST ═══
+function toast(msg,type='ok'){const el=document.createElement('div');el.className='toast toast-'+type;el.textContent=msg;document.getElementById('toast-container').appendChild(el);setTimeout(()=>el.remove(),2500)}
+
+// ═══ INIT ═══
+async function init(){
+  S.autoLockMin=parseInt(localStorage.getItem(K.LOCK)||'3');
+  S.attempts=parseInt(localStorage.getItem(K.ATT)||'0');
+  S.lockoutUntil=parseInt(localStorage.getItem(K.LKOUT)||'0');
+  try{S.fbConfig=JSON.parse(localStorage.getItem(K.FB_CFG))}catch(e){}
+  S.syncCode=localStorage.getItem(K.SYNC_CODE)||'';
+  S.syncOn=localStorage.getItem(K.SYNC_ON)==='true';
+  S.phase=localStorage.getItem(K.PIN)?'locked':'setup';
+  render();
+}
+
+// ═══ SAVE/LOAD ═══
+async function saveData(skipSync){
+  if(!S.currentPin)return;
+  try{
+    const enc=await Cry.enc({accounts:S.accounts,holdings:S.holdings},S.currentPin);
+    localStorage.setItem(K.DATA,enc);
+    if(!skipSync&&S.syncOn&&S.fbDb&&S.syncCode){
+      try{await fbPush(enc);S.lastSync=new Date();toast('동기화 완료','info')}catch(e){toast('동기화 실패','err')}
+    }
+  }catch(e){}
+}
+async function loadData(pin){
+  const enc=localStorage.getItem(K.DATA);
+  if(!enc)return true;
+  try{const d=await Cry.dec(enc,pin);if(d.accounts)S.accounts=d.accounts;if(d.holdings)S.holdings=d.holdings;return true}catch(e){return false}
+}
+
+// ═══ PIN AUTH ═══
+function pinPress(d){if(S.pinInput.length>=4)return;S.pinInput.push(d);S.pinError='';render();if(S.pinInput.length===4)setTimeout(()=>handlePin(S.pinInput.join('')),200)}
+function pinDel(){S.pinInput.pop();S.pinError='';render()}
+async function handlePin(pin){
+  if(S.phase==='setup'){S.setupPin=pin;S.pinInput=[];S.phase='setup_confirm';render();return}
+  if(S.phase==='setup_confirm'){
+    if(pin===S.setupPin){localStorage.setItem(K.PIN,await hashPin(pin));S.currentPin=pin;S.phase='unlocked';S.pinInput=[];localStorage.setItem(K.LOCK,S.autoLockMin);await saveData(true);startApp()}
+    else{S.pinInput=[];S.pinError='PIN이 일치하지 않습니다';S.phase='setup';S.setupPin='';shakeR()}return}
+  if(S.phase==='locked'){
+    if(S.lockoutUntil>Date.now()){S.pinInput=[];S.pinError=Math.ceil((S.lockoutUntil-Date.now())/1000)+'초 후 재시도';shakeR();return}
+    if(await hashPin(pin)===localStorage.getItem(K.PIN)){
+      S.currentPin=pin;S.attempts=0;localStorage.setItem(K.ATT,'0');
+      if(await loadData(pin)){S.phase='unlocked';S.pinInput=[];startApp()}else{S.pinInput=[];S.pinError='복호화 실패';shakeR()}
+    }else{
+      S.attempts++;localStorage.setItem(K.ATT,S.attempts);S.pinInput=[];
+      if(S.attempts>=10){[K.PIN,K.DATA,K.ATT,K.LKOUT].forEach(k=>localStorage.removeItem(k));S.pinError='10회 실패 - 데이터 삭제됨';S.attempts=0;setTimeout(()=>{S.phase='setup';render()},2500);shakeR()}
+      else if(S.attempts>=5){const sec=Math.pow(2,S.attempts-5)*30;S.lockoutUntil=Date.now()+sec*1000;localStorage.setItem(K.LKOUT,S.lockoutUntil);S.pinError=`틀림 (${S.attempts}/10). ${sec}초 잠금`;shakeR()}
+      else{S.pinError=`틀림 (${S.attempts}/10)`;shakeR()}
+    }
+  }
+}
+function shakeR(){render();const d=document.querySelector('.pin-dots');if(d){d.classList.add('shake');setTimeout(()=>d.classList.remove('shake'),600)}}
+function manualLock(){S.phase='locked';S.currentPin='';S.pinInput=[];S.pinError='';stopApp();render()}
+async function resetPin(){if(!confirm('PIN 초기화 시 암호화된 데이터에 접근 불가합니다.\n계속?'))return;[K.PIN,K.DATA,K.ATT,K.LKOUT].forEach(k=>localStorage.removeItem(k));S.accounts=[...defAccts];S.holdings=[...defHolds];S.phase='setup';S.pinInput=[];S.pinError='';S.attempts=0;render()}
+
+// ═══ AUTO LOCK ═══
+function trackAct(){lastAct=Date.now()}
+function checkLock(){if(S.phase==='unlocked'&&(Date.now()-lastAct)/60000>=S.autoLockMin)manualLock()}
+function startApp(){trackAct();['click','touchstart','keydown','scroll'].forEach(e=>document.addEventListener(e,trackAct,{passive:true}));autoLockIv=setInterval(checkLock,5000);refreshPrices();priceIv=setInterval(refreshPrices,60000);if(S.syncOn&&S.fbConfig)initFirebase();render()}
+function stopApp(){['click','touchstart','keydown','scroll'].forEach(e=>document.removeEventListener(e,trackAct));if(autoLockIv)clearInterval(autoLockIv);if(priceIv)clearInterval(priceIv);if(S.fbUnsub){S.fbUnsub();S.fbUnsub=null}}
+
+// ═══ FIREBASE SYNC ═══
+let fbApp=null,fbLoaded=false;
+async function loadFirebaseSDK(){
+  if(fbLoaded)return;
+  await loadScript('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
+  await loadScript('https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js');
+  fbLoaded=true;
+}
+function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s)})}
+
+async function initFirebase(){
+  if(!S.fbConfig||!S.syncCode)return;
+  try{
+    await loadFirebaseSDK();
+    if(fbApp){try{fbApp.delete()}catch(e){}}
+    fbApp=firebase.initializeApp(S.fbConfig,'portfolio-sync');
+    S.fbDb=firebase.database(fbApp);
+    S.syncStatus='connected';
+    // Listen for changes
+    const ref=S.fbDb.ref('portfolios/'+S.syncCode);
+    if(S.fbUnsub){S.fbUnsub();S.fbUnsub=null}
+    const listener=ref.on('value',async snap=>{
+      const val=snap.val();
+      if(!val||!val.data||!S.currentPin)return;
+      // Check if remote data is newer
+      const remoteTime=val.updatedAt||0;
+      const localTime=parseInt(localStorage.getItem('pf-last-save')||'0');
+      if(remoteTime>localTime+2000){
+        try{
+          const d=await Cry.dec(val.data,S.currentPin);
+          if(d.accounts)S.accounts=d.accounts;
+          if(d.holdings)S.holdings=d.holdings;
+          localStorage.setItem(K.DATA,val.data);
+          localStorage.setItem('pf-last-save',String(remoteTime));
+          S.lastSync=new Date(remoteTime);
+          toast('다른 기기에서 동기화됨','info');
+          render();
+        }catch(e){/* decrypt fail = different PIN */}
+      }
+    });
+    S.fbUnsub=()=>ref.off('value',listener);
+    render();
+  }catch(e){S.syncStatus='error';toast('Firebase 연결 실패: '+e.message,'err');render()}
+}
+
+async function fbPush(encData){
+  if(!S.fbDb||!S.syncCode)return;
+  const now=Date.now();
+  await S.fbDb.ref('portfolios/'+S.syncCode).set({data:encData,updatedAt:now});
+  localStorage.setItem('pf-last-save',String(now));
+}
+
+function cleanFirebaseConfig(raw){
+  // Extract key-value pairs directly with regex - handles any format
+  const keys=['apiKey','authDomain','databaseURL','projectId','storageBucket','messagingSenderId','appId','measurementId'];
+  const result={};
+  keys.forEach(key=>{
+    // Match: key: "value" or key: 'value' or "key": "value" etc.
+    const patterns=[
+      new RegExp(key+'\\s*:\\s*"([^"]*)"'),
+      new RegExp(key+'\\s*:\\s*\'([^\']*)\''),
+      new RegExp('"'+key+'"\\s*:\\s*"([^"]*)"'),
+      new RegExp('"'+key+'"\\s*:\\s*\'([^\']*)\'')
+    ];
+    for(const p of patterns){
+      const m=raw.match(p);
+      if(m){result[key]=m[1];break}
+    }
+  });
+  if(!result.apiKey)throw new Error('apiKey not found');
+  return JSON.stringify(result);
+}
+async function setupSync(){
+  const cfgStr=document.getElementById('fb-cfg').value.trim();
+  const code=document.getElementById('sync-code').value.trim();
+  if(!cfgStr||!code){toast('설정을 모두 입력해주세요','err');return}
+  try{
+    const cleaned=cleanFirebaseConfig(cfgStr);
+    const cfg=JSON.parse(cleaned);
+    if(!cfg.databaseURL){toast('databaseURL이 없습니다. Realtime Database를 먼저 생성해주세요.','err');return}
+    S.fbConfig=cfg;S.syncCode=code;S.syncOn=true;
+    localStorage.setItem(K.FB_CFG,JSON.stringify(cfg));
+    localStorage.setItem(K.SYNC_CODE,code);
+    localStorage.setItem(K.SYNC_ON,'true');
+    await initFirebase();
+    await saveData();
+    toast('동기화 활성화 완료!','ok');
+    S.modal=null;render();
+  }catch(e){toast('설정 파싱 실패: Firebase Console에서 복사한 내용을 그대로 붙여넣어 주세요','err')}
+}
+
+function disconnectSync(){
+  S.syncOn=false;S.syncStatus='off';
+  localStorage.setItem(K.SYNC_ON,'false');
+  if(S.fbUnsub){S.fbUnsub();S.fbUnsub=null}
+  if(fbApp){try{fbApp.delete()}catch(e){}}
+  fbApp=null;S.fbDb=null;
+  toast('동기화 해제됨','info');render();
+}
+
+async function forcePush(){
+  if(!S.syncOn||!S.fbDb){toast('동기화가 비활성화 상태입니다','err');return}
+  try{const enc=await Cry.enc({accounts:S.accounts,holdings:S.holdings},S.currentPin);await fbPush(enc);S.lastSync=new Date();toast('강제 업로드 완료','ok');render()}catch(e){toast('업로드 실패','err')}
+}
+
+async function forcePull(){
+  if(!S.syncOn||!S.fbDb){toast('동기화가 비활성화 상태입니다','err');return}
+  try{
+    const snap=await S.fbDb.ref('portfolios/'+S.syncCode).once('value');
+    const val=snap.val();
+    if(!val||!val.data){toast('원격 데이터가 없습니다','err');return}
+    const d=await Cry.dec(val.data,S.currentPin);
+    if(d.accounts)S.accounts=d.accounts;if(d.holdings)S.holdings=d.holdings;
+    localStorage.setItem(K.DATA,val.data);S.lastSync=new Date();
+    toast('다운로드 완료','ok');render();
+  }catch(e){toast('다운로드 실패 (PIN이 다를 수 있음)','err')}
+}
+
+// ═══ EXPORT / IMPORT ═══
+async function exportData(){
+  if(!S.currentPin){toast('잠금 해제 후 시도해주세요','err');return}
+  try{
+    const enc=await Cry.enc({accounts:S.accounts,holdings:S.holdings},S.currentPin);
+    const blob=new Blob([JSON.stringify({version:3,encrypted:enc,exportedAt:new Date().toISOString()})],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download='portfolio-backup-'+new Date().toISOString().slice(0,10)+'.pfbak';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+    toast('백업 파일 다운로드 완료','ok');
+  }catch(e){toast('내보내기 실패','err')}
+}
+
+function importData(){document.getElementById('import-file').click()}
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('import-file').addEventListener('change',async e=>{
+    const file=e.target.files[0];if(!file)return;
+    try{
+      const text=await file.text();
+      const data=JSON.parse(text);
+      if(!data.encrypted){toast('올바른 백업 파일이 아닙니다','err');return}
+      const d=await Cry.dec(data.encrypted,S.currentPin);
+      if(d.accounts)S.accounts=d.accounts;if(d.holdings)S.holdings=d.holdings;
+      await saveData(true);
+      toast('가져오기 완료! ('+data.exportedAt?.slice(0,10)+' 백업)','ok');
+      render();
+    }catch(er){toast('가져오기 실패 - PIN이 다르거나 파일이 손상됨','err')}
+    e.target.value='';
+  })
+});
+
+// ═══ PRICES (Yahoo Finance API) ═══
+const PROXIES=[
+  u=>'https://corsproxy.io/?'+encodeURIComponent(u),
+  u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u)
+];
+async function fetchJ(url){
+  for(const px of PROXIES){
+    try{
+      const c=new AbortController();const t=setTimeout(()=>c.abort(),10000);
+      const r=await fetch(px(url),{signal:c.signal});clearTimeout(t);
+      if(!r.ok)continue;
+      return await r.json();
+    }catch(e){continue}
+  }
+  // Try direct (works if hosted with CORS headers)
+  try{const r=await fetch(url);if(r.ok)return await r.json()}catch(e){}
+  return null;
+}
+
+async function yahooPrice(yTicker){
+  const url='https://query1.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(yTicker)+'?interval=1d&range=2d';
+  const d=await fetchJ(url);
+  if(!d||!d.chart||!d.chart.result||!d.chart.result[0])return null;
+  const m=d.chart.result[0].meta;
+  return{price:m.regularMarketPrice,prev:m.chartPreviousClose||m.previousClose||m.regularMarketPrice};
+}
+
+async function krStockPrice(ticker){
+  // Try KOSPI (.KS) first, then KOSDAQ (.KQ)
+  let r=await yahooPrice(ticker+'.KS');
+  if(r&&r.price)return r;
+  r=await yahooPrice(ticker+'.KQ');
+  return r;
+}
+
+let priceLoadCount=0;
+async function refreshPrices(manual){
+  S.refreshing=true;if(!S.modal)render();
+  let success=0,fail=0;
+  try{
+    // 1. Fetch exchange rate
+    const fxData=await yahooPrice('KRW=X');
+    if(fxData&&fxData.price){USD_KRW=fxData.price;success++}
+
+    // 2. Build unique tickers from holdings
+    const jobs=[];const seen=new Set();
+    S.holdings.forEach(h=>{
+      if(seen.has(h.ticker))return;seen.add(h.ticker);
+      if(h.type==='kr_stock'){
+        jobs.push({ticker:h.ticker,fn:()=>krStockPrice(h.ticker)});
+      }else if(h.type==='us_stock'){
+        jobs.push({ticker:h.ticker,fn:()=>yahooPrice(h.ticker)});
+      }else if(h.type==='gold'){
+        jobs.push({ticker:h.ticker,fn:async()=>{
+          const g=await yahooPrice('GC=F');
+          if(!g||!g.price)return null;
+          // Convert USD/oz → KRW/g (1 troy oz = 31.1035g)
+          return{price:(g.price*USD_KRW)/31.1035,prev:(g.prev*USD_KRW)/31.1035};
+        }});
+      }
+    });
+
+    // 3. Fetch all in parallel
+    const results=await Promise.allSettled(jobs.map(j=>j.fn()));
+    results.forEach((r,i)=>{
+      if(r.status==='fulfilled'&&r.value&&r.value.price){
+        S.prices[jobs[i].ticker]=r.value;success++;
+      }else{fail++}
+    });
+
+    // 4. Update sparklines
+    Object.keys(S.prices).forEach(t=>{
+      if(!S.sparkData[t])S.sparkData[t]=[];
+      S.sparkData[t]=[...S.sparkData[t].slice(-19),S.prices[t].price];
+    });
+
+    S.lastUpdate=new Date();S.refreshing=false;
+    priceLoadCount++;
+    // Show toast only on first load or manual refresh
+    if(manual||priceLoadCount===1){
+      if(success>0&&fail===0)toast('시세 업데이트 완료','ok');
+      else if(success>0)toast(`${success}개 성공, ${fail}개 실패`,'info');
+      else toast('시세 조회 실패 - 네트워크를 확인해주세요','err');
+    }
+  }catch(e){
+    S.refreshing=false;
+    if(manual||priceLoadCount===0)toast('시세 조회 오류: '+e.message,'err');
+  }
+  if(!S.modal)render();
+}
+
+// ═══ HELPERS ═══
+const fmt=(n,c='KRW')=>c==='USD'?'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'₩'+Math.round(n).toLocaleString('ko-KR');
+const fmtK=n=>'₩'+Math.round(n).toLocaleString('ko-KR');
+const fmtP=n=>(n>=0?'+':'')+n.toFixed(2)+'%';
+const uid=()=>Math.random().toString(36).slice(2,10);
+function enrich(h){const p=S.prices[h.ticker];if(!p)return{...h,cp:0,evalK:0,costK:0,pnl:0,pnlP:0,dayChg:0};const isK=h.currency==='KRW',eN=p.price*h.qty,cN=h.avgPrice*h.qty,eK=isK?eN:eN*USD_KRW,cK=isK?cN:cN*USD_KRW,pnl=eK-cK;return{...h,cp:p.price,evalK:eK,costK:cK,pnl,pnlP:cK>0?(pnl/cK)*100:0,dayChg:p.prev?((p.price-p.prev)/p.prev)*100:0}}
+const TL={kr_stock:'한국주식',us_stock:'미국주식',gold:'금 현물'},TT={kr_stock:'h-tag-kr',us_stock:'h-tag-us',gold:'h-tag-gold'},TC={kr_stock:'#4e8cff',us_stock:'#a78bfa',gold:'#fbbf24'};
+function sparkSVG(d,c='#34d399',w=64,h=24){if(!d||d.length<2)return'';const mn=Math.min(...d),mx=Math.max(...d),r=mx-mn||1;return`<svg width="${w}" height="${h}" style="display:block;flex-shrink:0"><polyline points="${d.map((v,i)=>`${(i/(d.length-1))*w},${h-((v-mn)/r)*(h-4)-2}`).join(' ')}" fill="none" stroke="${c}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`}
+function donutSVG(segs,sz=140){const tot=segs.reduce((s,g)=>s+g.value,0);if(!tot)return'';const r=50,cx=sz/2,cy=sz/2,C=2*Math.PI*r;let a=0,p='';segs.forEach(g=>{const pct=g.value/tot,dl=pct*C;p+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${g.color}" stroke-width="18" stroke-dasharray="${dl} ${C-dl}" stroke-dashoffset="${-a*C}" transform="rotate(-90 ${cx} ${cy})" style="transition:all .8s"/>`;a+=pct});return`<svg width="${sz}" height="${sz}" viewBox="0 0 ${sz} ${sz}">${p}<circle cx="${cx}" cy="${cy}" r="39" fill="var(--bg-card)"/></svg>`}
+
+// ═══ RENDER ═══
+function render(){
+  if(S.phase==='loading'){document.getElementById('app').innerHTML=`<div class="lock-screen"><div class="lock-icon">📊</div><div style="color:var(--text3)">로딩...</div></div>`;return}
+  if(S.phase==='setup'||S.phase==='setup_confirm'){const c=S.phase==='setup_confirm';document.getElementById('app').innerHTML=`<div class="lock-screen"><div class="lock-icon">🔐</div><div class="setup-step">${c?'2/2':'1/2'}</div><div class="lock-title">${c?'PIN 확인':'PIN 설정'}</div><div class="lock-subtitle">${c?'같은 PIN을 한번 더 입력해주세요':'4자리 PIN을 설정해주세요'}</div>${pinDotsHTML()}${pinPadHTML()}<div class="lock-error">${S.pinError}</div></div>`;return}
+  if(S.phase==='locked'){let lm='';if(S.lockoutUntil>Date.now())lm=`<div style="color:var(--text3);font-size:11px;margin-top:8px">${Math.ceil((S.lockoutUntil-Date.now())/1000)}초 후 재시도</div>`;document.getElementById('app').innerHTML=`<div class="lock-screen"><div class="lock-icon">🔒</div><div class="lock-title">잠김</div><div class="lock-subtitle">PIN을 입력해주세요</div>${pinDotsHTML()}${pinPadHTML()}<div class="lock-error">${S.pinError}</div>${lm}<button onclick="resetPin()" style="margin-top:24px;background:none;border:none;color:var(--text3);font-size:12px;cursor:pointer;text-decoration:underline;font-family:inherit">PIN 초기화</button></div>`;if(S.lockoutUntil>Date.now())setTimeout(render,1000);return}
+
+  // === UNLOCKED ===
+  const enriched=S.holdings.map(enrich),filtered=S.selAccount==='all'?enriched:enriched.filter(h=>h.accountId===S.selAccount);
+  const tEval=filtered.reduce((s,h)=>s+h.evalK,0),tCost=filtered.reduce((s,h)=>s+h.costK,0),tPnl=tEval-tCost,tPnlP=tCost>0?(tPnl/tCost)*100:0;
+  const byA={};enriched.forEach(h=>{if(!byA[h.accountId])byA[h.accountId]={eval:0,cost:0,items:[]};byA[h.accountId].eval+=h.evalK;byA[h.accountId].cost+=h.costK;byA[h.accountId].items.push(h)});
+  const byT={kr_stock:0,us_stock:0,gold:0};filtered.forEach(h=>byT[h.type]=(byT[h.type]||0)+h.evalK);
+  const dSegs=Object.entries(byT).filter(([,v])=>v>0).map(([k,v])=>({label:TL[k],value:v,color:TC[k]}));
+  let O='';
+
+  // Header
+  const syncBadge=S.syncOn?`<span class="sync-badge sync-on">동기화</span>`:`<span class="sync-badge sync-off">로컬</span>`;
+  O+=`<div class="container"><div class="header fade-up"><div class="header-left"><div class="logo">📊</div><div><h1>포트폴리오</h1><div style="display:flex;align-items:center;gap:4px"><div class="security-badge">AES-256</div>${syncBadge}</div></div></div><div class="header-right"><button class="ib" onclick="manualLock()">🔒</button><button class="ib ${S.refreshing?'spinning':''}" onclick="refreshPrices(true)"><span>↻</span></button></div></div>`;
+
+  if(S.tab!=='accounts'&&S.tab!=='settings'){O+=`<div class="chips fade-up fade-up-1"><button class="chip ${S.selAccount==='all'?'active':''}" onclick="setSel('all')">전체</button>`;S.accounts.forEach(a=>{O+=`<button class="chip ${S.selAccount===a.id?'active':''}" onclick="setSel('${a.id}')">${a.icon} ${a.name}</button>`});O+=`</div>`}
+
+  // === DASHBOARD ===
+  if(S.tab==='dashboard'){
+    const pc=tPnl>=0?'pnl-pos':'pnl-neg',clr=tPnl>=0?'var(--green)':'var(--red)';
+    O+=`<div class="summary-grid fade-up fade-up-1"><div class="summary-main"><div class="summary-label">총 평가금액</div><div class="summary-value">${fmtK(tEval)}</div><div class="pnl-badge ${pc}">${fmtP(tPnlP)}</div></div><div class="summary-row"><div class="summary-sub"><div class="summary-label">투자금액</div><div class="summary-value" style="color:var(--text2)">${fmtK(tCost)}</div></div><div class="summary-sub"><div class="summary-label">총 수익금</div><div class="summary-value" style="color:${clr}">${tPnl>=0?'+':''}${fmtK(Math.abs(tPnl))}</div></div></div></div>`;
+    O+=`<div class="card fade-up fade-up-2"><div class="section-title">자산 구성</div><div class="donut-section">${donutSVG(dSegs)}<div class="legend">`;
+    dSegs.forEach(s=>{O+=`<div class="legend-item"><div class="legend-dot" style="background:${s.color}"></div><div><div class="legend-label">${s.label}</div><div class="legend-val">${fmtK(s.value)} (${tEval>0?((s.value/tEval)*100).toFixed(1):0}%)</div></div></div>`});
+    O+=`</div></div></div>`;
+    O+=`<div class="card fade-up fade-up-3"><div class="section-title">계좌별 현황</div>`;
+    S.accounts.forEach(a=>{const d=byA[a.id];if(!d)return;const p=d.eval-d.cost,pc2=d.cost>0?(p/d.cost)*100:0,bw=tEval>0?(d.eval/tEval)*100:0,c2=p>=0?'var(--green)':'var(--red)';O+=`<div style="padding:12px;background:var(--bg-input);border-radius:11px;margin-bottom:8px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:13px;font-weight:600">${a.icon} ${a.name}</span><span style="font-size:12px;font-weight:700;color:${c2};font-family:'JetBrains Mono',monospace">${fmtP(pc2)}</span></div><div style="font-size:15px;font-weight:700;font-family:'JetBrains Mono',monospace;margin-bottom:8px">${fmtK(d.eval)}</div><div style="height:4px;background:rgba(255,255,255,.04);border-radius:2px;overflow:hidden"><div style="height:100%;width:${bw}%;background:var(--accent);border-radius:2px;transition:width .8s"></div></div></div>`});
+    O+=`</div>`;
+    O+=`<div class="fade-up fade-up-4"><div class="section-title">보유 자산</div>`;
+    filtered.sort((a,b)=>Math.abs(b.pnlP)-Math.abs(a.pnlP)).forEach(h=>{const c=h.pnl>=0?'var(--green)':'var(--red)',sp=sparkSVG(S.sparkData[h.ticker],h.pnl>=0?'#34d399':'#f87171');O+=`<div class="holding-item" onclick="openEdit('${h.id}')"><div class="h-left"><div class="h-name">${h.name}</div><div class="h-meta"><span class="h-tag ${TT[h.type]}">${TL[h.type]}</span><span>${h.qty}${h.type==='gold'?'g':'주'} · ${fmt(h.avgPrice,h.currency)}</span></div></div><div style="display:flex;align-items:center;gap:8px">${sp}<div class="h-right"><div class="h-eval">${fmtK(h.evalK)}</div><div class="h-pnl" style="color:${c}">${h.pnl>=0?'+':''}${fmtK(h.pnl)} (${fmtP(h.pnlP)})</div></div></div></div>`});
+    if(!filtered.length)O+=`<div class="empty-state"><div class="emoji">📭</div><div>보유 자산이 없습니다</div></div>`;O+=`</div>`;
+  }
+
+  // === HOLDINGS ===
+  if(S.tab==='holdings'){
+    O+=`<div class="section-title fade-up" style="display:flex;justify-content:space-between"><span>보유 자산 목록</span><span style="font-size:12px;color:var(--text3)">${filtered.length}개</span></div>`;
+    filtered.sort((a,b)=>b.evalK-a.evalK).forEach((h,i)=>{const c=h.pnl>=0?'var(--green)':'var(--red)',dc=h.dayChg>=0?'var(--green)':'var(--red)';
+      O+=`<div class="card fade-up fade-up-${Math.min(i,4)}" onclick="openEdit('${h.id}')" style="cursor:pointer;padding:16px"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px"><div><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span class="h-tag ${TT[h.type]}">${TL[h.type]}</span><span style="font-size:15px;font-weight:700">${h.name}</span><span style="font-size:11px;color:var(--text3)">${h.ticker}</span></div><div style="font-size:11px;color:var(--text3)">${S.accounts.find(a=>a.id===h.accountId)?.icon||''} ${S.accounts.find(a=>a.id===h.accountId)?.name||''}</div></div><div style="font-size:12px;font-weight:600;color:${dc};font-family:'JetBrains Mono',monospace">오늘 ${fmtP(h.dayChg)}</div></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px"><div style="padding:10px;background:var(--bg-input);border-radius:9px"><div style="font-size:10px;color:var(--text3);margin-bottom:3px">수량</div><div style="font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace">${h.type==='gold'?h.qty+'g':h.qty+'주'}</div></div><div style="padding:10px;background:var(--bg-input);border-radius:9px"><div style="font-size:10px;color:var(--text3);margin-bottom:3px">현재가</div><div style="font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace">${fmt(h.cp,h.currency)}</div></div><div style="padding:10px;background:var(--bg-input);border-radius:9px"><div style="font-size:10px;color:var(--text3);margin-bottom:3px">평균매수</div><div style="font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace">${fmt(h.avgPrice,h.currency)}</div></div></div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)"><div><span style="font-size:11px;color:var(--text3)">평가금액 </span><span style="font-size:16px;font-weight:800;font-family:'JetBrains Mono',monospace">${fmtK(h.evalK)}</span></div><div class="pnl-badge ${h.pnl>=0?'pnl-pos':'pnl-neg'}">${h.pnl>=0?'+':''}${fmtK(h.pnl)} (${fmtP(h.pnlP)})</div></div></div>`});
+    if(!filtered.length)O+=`<div class="empty-state"><div class="emoji">📭</div><div>보유 자산이 없습니다</div></div>`;
+  }
+
+  // === ACCOUNTS ===
+  if(S.tab==='accounts'){
+    O+=`<div class="section-title fade-up" style="margin-top:12px">계좌 관리</div>`;
+    S.accounts.forEach((a,i)=>{const d=byA[a.id]||{eval:0,cost:0,items:[]},p=d.eval-d.cost,pc=d.cost>0?(p/d.cost)*100:0,c=p>=0?'var(--green)':'var(--red)';
+      O+=`<div class="acct-card fade-up fade-up-${Math.min(i,4)}"><button class="acct-del" onclick="event.stopPropagation();delAcct('${a.id}')">🗑</button><div class="acct-header"><div class="acct-icon">${a.icon}</div><div><div class="acct-name">${a.name}</div><div class="acct-count">${d.items.length}개 자산</div></div></div><div class="acct-stats"><div class="acct-stat"><div class="acct-stat-label">평가금액</div><div class="acct-stat-val">${fmtK(d.eval)}</div></div><div class="acct-stat"><div class="acct-stat-label">손익</div><div class="acct-stat-val" style="color:${c}">${p>=0?'+':''}${fmtK(Math.abs(p))}</div></div></div><div style="margin-top:10px"><span class="pnl-badge ${p>=0?'pnl-pos':'pnl-neg'}">${fmtP(pc)}</span></div>`;
+      if(d.items.length){O+=`<div style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px">`;d.items.forEach(h=>{O+=`<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:12px"><span style="color:var(--text2)">${h.name}</span><span style="font-weight:700;color:${h.pnl>=0?'var(--green)':'var(--red)'};font-family:'JetBrains Mono',monospace">${fmtP(h.pnlP)}</span></div>`});O+=`</div>`}
+      O+=`</div>`});
+  }
+
+  // === SETTINGS ===
+  if(S.tab==='settings'){
+    O+=`<div class="fade-up fade-up-1">`;
+
+    // ── Sync Section ──
+    O+=`<div class="section-title" style="margin-top:12px">☁️ 동기화</div>`;
+
+    // Manual backup
+    O+=`<div class="card" style="padding:16px"><div style="font-size:14px;font-weight:700;margin-bottom:8px">📦 수동 백업</div><div style="font-size:12px;color:var(--text3);margin-bottom:12px;line-height:1.5">암호화된 백업 파일을 내보내거나, 다른 기기의 백업을 가져옵니다.<br>파일은 동일한 PIN으로만 복호화됩니다.</div><div style="display:flex;gap:8px"><button class="btn btn-primary" style="flex:1;padding:10px" onclick="exportData()">📤 내보내기</button><button class="btn btn-secondary" style="flex:1;padding:10px" onclick="importData()">📥 가져오기</button></div></div>`;
+
+    // Firebase sync
+    if(S.syncOn){
+      O+=`<div class="card" style="padding:16px;border-color:var(--accent)"><div style="display:flex;align-items:center;gap:12px;margin-bottom:14px"><div style="width:40px;height:40px;border-radius:12px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:20px">☁️</div><div><div style="font-size:14px;font-weight:700">Firebase 실시간 동기화</div><div style="font-size:11px;color:var(--green)">활성화됨 · ${S.syncStatus==='connected'?'연결됨':'연결 중...'}</div></div></div>`;
+      O+=`<div style="padding:12px;background:var(--bg-input);border-radius:10px;margin-bottom:12px"><div style="font-size:11px;color:var(--text3);margin-bottom:4px">동기화 코드</div><div style="font-size:16px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--accent);letter-spacing:.08em">${S.syncCode}</div></div>`;
+      if(S.lastSync)O+=`<div style="font-size:11px;color:var(--text3);margin-bottom:12px">마지막 동기화: ${S.lastSync.toLocaleString('ko-KR')}</div>`;
+      O+=`<div style="display:flex;gap:8px;margin-bottom:8px"><button class="btn btn-secondary" style="flex:1;padding:10px;font-size:12px" onclick="forcePush()">⬆ 강제 업로드</button><button class="btn btn-secondary" style="flex:1;padding:10px;font-size:12px" onclick="forcePull()">⬇ 강제 다운로드</button></div>`;
+      O+=`<button class="btn btn-danger" style="padding:10px" onclick="disconnectSync()">동기화 해제</button></div>`;
+    }else{
+      O+=`<div class="card" style="padding:16px"><div style="display:flex;align-items:center;gap:12px;margin-bottom:14px"><div style="width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.03);display:flex;align-items:center;justify-content:center;font-size:20px">☁️</div><div><div style="font-size:14px;font-weight:700">Firebase 실시간 동기화</div><div style="font-size:11px;color:var(--text3)">비활성화</div></div></div>`;
+      O+=`<div style="font-size:12px;color:var(--text3);margin-bottom:14px;line-height:1.6">여러 기기에서 실시간으로 데이터를 동기화합니다.<br>데이터는 암호화된 상태로 전송되어 서버에서도 내용을 볼 수 없습니다.</div>`;
+      O+=`<button class="btn btn-primary" style="padding:10px" onclick="S.modal='syncSetup';render()">동기화 설정하기</button></div>`;
+    }
+
+    // ── Security Section ──
+    O+=`<div class="section-title" style="margin-top:20px">🔐 보안</div>`;
+    O+=`<div class="card" style="padding:16px"><div style="display:flex;align-items:center;gap:12px;margin-bottom:12px"><div style="width:40px;height:40px;border-radius:12px;background:var(--green-dim);display:flex;align-items:center;justify-content:center;font-size:20px">🔐</div><div><div style="font-size:14px;font-weight:700">AES-256-GCM 암호화</div><div style="font-size:11px;color:var(--green)">활성화됨</div></div></div><div style="font-size:12px;color:var(--text3);line-height:1.6">PBKDF2(100K회) + AES-256-GCM 암호화로 보호됩니다.</div></div>`;
+
+    O+=`<div class="card" style="padding:16px"><div style="font-size:14px;font-weight:700;margin-bottom:12px">⏱️ 자동 잠금</div><div style="display:flex;gap:8px;flex-wrap:wrap">`;
+    [1,3,5,10].forEach(m=>{const on=S.autoLockMin===m;O+=`<button onclick="setAL(${m})" style="padding:8px 16px;border-radius:10px;border:1px solid ${on?'var(--accent)':'var(--border)'};background:${on?'var(--accent-dim)':'var(--bg-input)'};color:${on?'var(--accent)':'var(--text2)'};font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">${m}분</button>`});
+    O+=`</div></div>`;
+
+    O+=`<div class="card" style="padding:16px"><div style="font-size:14px;font-weight:700;margin-bottom:12px">🔑 PIN 관리</div><div style="display:flex;gap:8px"><button class="btn btn-secondary" style="flex:1;padding:10px" onclick="changePin()">PIN 변경</button><button class="btn btn-danger" style="flex:1;padding:10px" onclick="resetAll()">전체 초기화</button></div></div>`;
+    O+=`</div>`;
+  }
+
+  O+=`<div class="update-time">${S.lastUpdate.toLocaleTimeString('ko-KR')} · $1 = ₩${Math.round(USD_KRW).toLocaleString()} · ${S.syncOn?'☁️ 동기화':'🔒 로컬'}</div></div>`;
+  if(S.tab==='dashboard'||S.tab==='holdings')O+=`<button class="fab" onclick="openAddH()">+</button>`;
+  else if(S.tab==='accounts')O+=`<button class="fab" onclick="openAddA()">+</button>`;
+  O+=`<div class="bottom-nav"><div class="nav-inner"><button class="nav-item ${S.tab==='dashboard'?'active':''}" onclick="setTab('dashboard')"><span class="nav-icon">◉</span>대시보드</button><button class="nav-item ${S.tab==='holdings'?'active':''}" onclick="setTab('holdings')"><span class="nav-icon">☰</span>보유자산</button><button class="nav-item ${S.tab==='accounts'?'active':''}" onclick="setTab('accounts')"><span class="nav-icon">⊞</span>계좌</button><button class="nav-item ${S.tab==='settings'?'active':''}" onclick="setTab('settings')"><span class="nav-icon">⚙</span>설정</button></div></div>`;
+
+  if(S.modal==='addH')O+=addHModal();if(S.modal==='editH'&&S.editHolding)O+=editHModal();if(S.modal==='addA')O+=addAModal();if(S.modal==='syncSetup')O+=syncSetupModal();
+  document.getElementById('app').innerHTML=O;
+}
+
+// ═══ PIN UI ═══
+function pinDotsHTML(){let o='<div class="pin-dots">';for(let i=0;i<4;i++){const f=i<S.pinInput.length,e=S.pinError&&!S.pinInput.length;o+=`<div class="pin-dot ${f?'filled':''} ${e?'error':''}"></div>`}return o+'</div>'}
+function pinPadHTML(){let o='<div class="pin-pad">';for(let i=1;i<=9;i++)o+=`<button class="pin-key" onclick="pinPress(${i})">${i}</button>`;o+=`<div class="pin-key" style="visibility:hidden"></div><button class="pin-key" onclick="pinPress(0)">0</button><button class="pin-key pin-key-del" onclick="pinDel()">⌫</button></div>`;return o}
+
+// ═══ MODALS ═══
+function addHModal(){const opts=S.accounts.map(a=>`<option value="${a.id}">${a.icon} ${a.name}</option>`).join('');return`<div class="modal-overlay" onclick="closeM()"><div class="modal-sheet" onclick="event.stopPropagation()"><div class="modal-handle"></div><div class="modal-title">자산 추가</div><div class="fg"><label class="fl">계좌</label><select id="f-a" class="fi">${opts}</select></div><div class="fg"><label class="fl">유형</label><select id="f-t" class="fi"><option value="kr_stock">🇰🇷 한국 주식</option><option value="us_stock">🇺🇸 미국 주식</option><option value="gold">🥇 금 현물</option></select></div><div class="fg"><label class="fl">종목명</label><input id="f-n" class="fi" placeholder="예: 삼성전자"></div><div class="fg"><label class="fl">티커</label><input id="f-tk" class="fi" placeholder="예: 005930"></div><div class="fr"><div class="fg"><label class="fl">수량</label><input id="f-q" class="fi" type="number" inputmode="decimal"></div><div class="fg"><label class="fl">평균매수가</label><input id="f-p" class="fi" type="number" inputmode="decimal"></div></div><div class="btn-row"><button class="btn btn-secondary" style="flex:1" onclick="closeM()">취소</button><button class="btn btn-primary" style="flex:2" onclick="addH()">추가</button></div></div></div>`}
+function editHModal(){const h=S.editHolding;return`<div class="modal-overlay" onclick="closeM()"><div class="modal-sheet" onclick="event.stopPropagation()"><div class="modal-handle"></div><div class="modal-title">${h.name} 수정</div><div class="fg"><label class="fl">종목명</label><input id="e-n" class="fi" value="${h.name}"></div><div class="fr"><div class="fg"><label class="fl">수량</label><input id="e-q" class="fi" type="number" inputmode="decimal" value="${h.qty}"></div><div class="fg"><label class="fl">평균매수가</label><input id="e-p" class="fi" type="number" inputmode="decimal" value="${h.avgPrice}"></div></div><div class="btn-row"><button class="btn btn-danger" style="flex:1" onclick="delH('${h.id}')">삭제</button><button class="btn btn-secondary" style="flex:1" onclick="closeM()">취소</button><button class="btn btn-primary" style="flex:1" onclick="updH('${h.id}')">저장</button></div></div></div>`}
+function addAModal(){const icons=['💼','🛡️','🏦','💰','📈','🪙','🏠','🎯','💎','🌏'];return`<div class="modal-overlay" onclick="closeM()"><div class="modal-sheet" onclick="event.stopPropagation()"><div class="modal-handle"></div><div class="modal-title">계좌 추가</div><div class="fg"><label class="fl">계좌명</label><input id="a-n" class="fi" placeholder="예: 퇴직연금"></div><div class="fg"><label class="fl">아이콘</label><div class="icon-grid">${icons.map(ic=>`<button class="icon-btn" onclick="pickIc(this,'${ic}')">${ic}</button>`).join('')}</div><input type="hidden" id="a-ic" value="💼"></div><div class="btn-row"><button class="btn btn-secondary" style="flex:1" onclick="closeM()">취소</button><button class="btn btn-primary" style="flex:2" onclick="addA()">추가</button></div></div></div>`}
+
+function syncSetupModal(){
+  return`<div class="modal-overlay" onclick="closeM()"><div class="modal-sheet" onclick="event.stopPropagation()"><div class="modal-handle"></div><div class="modal-title">☁️ Firebase 동기화 설정</div>
+  <div style="font-size:12px;color:var(--text3);line-height:1.7;margin-bottom:16px;padding:14px;background:var(--bg-input);border-radius:10px">
+    <strong style="color:var(--text)">설정 방법:</strong><br>
+    1. <a href="https://console.firebase.google.com" target="_blank" style="color:var(--accent)">Firebase Console</a> → 프로젝트 생성<br>
+    2. Realtime Database → 데이터베이스 만들기<br>
+    3. 프로젝트 설정 → 웹 앱 추가 → firebaseConfig 복사<br>
+    4. 아래에 그대로 붙여넣기 (JavaScript 코드 그대로 OK)
+  </div>
+  <div class="fg"><label class="fl">Firebase Config (JSON)</label><textarea id="fb-cfg" class="fi" style="height:120px;resize:vertical;font-family:'JetBrains Mono',monospace;font-size:11px" placeholder='Firebase Console에서 복사한 내용을 그대로 붙여넣으세요.\nconst firebaseConfig = {...} 형태도 OK!'>${S.fbConfig?JSON.stringify(S.fbConfig,null,2):''}</textarea></div>
+  <div class="fg"><label class="fl">동기화 코드 (모든 기기에서 동일하게 입력)</label><input id="sync-code" class="fi" placeholder="예: my-portfolio-2024" value="${S.syncCode}" style="font-family:'JetBrains Mono',monospace"></div>
+  <div style="font-size:11px;color:var(--orange);margin-bottom:12px;padding:10px;background:var(--orange-dim);border-radius:8px">⚠️ 동기화 코드를 아는 사람은 암호화된 데이터에 접근할 수 있습니다. 추측하기 어려운 코드를 사용하세요. (데이터는 PIN으로 암호화되어 있어 내용은 볼 수 없음)</div>
+  <div class="btn-row"><button class="btn btn-secondary" style="flex:1" onclick="closeM()">취소</button><button class="btn btn-primary" style="flex:2" onclick="setupSync()">연결하기</button></div></div></div>`
+}
+
+// ═══ ACTIONS ═══
+function setTab(t){S.tab=t;render();scrollTo(0,0)}
+function setSel(id){S.selAccount=id;render()}
+function closeM(){S.modal=null;S.editHolding=null;render()}
+function openAddH(){S.modal='addH';render()}
+function openAddA(){S.modal='addA';render()}
+function openEdit(id){const h=S.holdings.find(x=>x.id===id);if(h){S.editHolding={...h};S.modal='editH';render()}}
+function addH(){const a=document.getElementById('f-a').value,t=document.getElementById('f-t').value,n=document.getElementById('f-n').value.trim(),tk=document.getElementById('f-tk').value.trim(),q=parseFloat(document.getElementById('f-q').value),p=parseFloat(document.getElementById('f-p').value);if(!n||!q||!p||!a)return;S.holdings.push({id:uid(),accountId:a,type:t,ticker:tk||n,name:n,qty:q,avgPrice:p,currency:t==='us_stock'?'USD':'KRW'});saveData();closeM()}
+function updH(id){const n=document.getElementById('e-n').value.trim(),q=parseFloat(document.getElementById('e-q').value),p=parseFloat(document.getElementById('e-p').value);if(!n||!q||!p)return;S.holdings=S.holdings.map(h=>h.id===id?{...h,name:n,qty:q,avgPrice:p}:h);saveData();closeM()}
+function delH(id){S.holdings=S.holdings.filter(h=>h.id!==id);saveData();closeM()}
+function addA(){const n=document.getElementById('a-n').value.trim(),ic=document.getElementById('a-ic').value||'💼';if(!n)return;S.accounts.push({id:uid(),name:n,icon:ic});saveData();closeM()}
+function delAcct(id){if(!confirm('계좌와 자산을 모두 삭제하시겠습니까?'))return;S.accounts=S.accounts.filter(a=>a.id!==id);S.holdings=S.holdings.filter(h=>h.accountId!==id);if(S.selAccount===id)S.selAccount='all';saveData();render()}
+function pickIc(el,ic){document.getElementById('a-ic').value=ic;document.querySelectorAll('.icon-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active')}
+function setAL(m){S.autoLockMin=m;localStorage.setItem(K.LOCK,m);render()}
+function changePin(){S.phase='setup';S.pinInput=[];S.pinError='';S.setupPin='';stopApp();render()}
+function resetAll(){if(!confirm('모든 데이터와 PIN이 삭제됩니다.\n계속?'))return;Object.values(K).forEach(k=>localStorage.removeItem(k));localStorage.removeItem('pf-last-save');S.accounts=[...defAccts];S.holdings=[...defHolds];S.currentPin='';S.phase='setup';S.pinInput=[];S.syncOn=false;S.fbConfig=null;S.syncCode='';stopApp();render()}
+
+// ═══ SW & INIT ═══
+if('serviceWorker' in navigator){const sw=`self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>{e.respondWith(fetch(e.request).catch(()=>new Response('Offline')))});`;navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'}))).catch(()=>{})}
+init();
+</script>
+</body>
+</html>
